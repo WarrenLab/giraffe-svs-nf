@@ -121,13 +121,22 @@ process CALL {
 process NORM {
     input:
         path(refFasta)
+        val(refPath)
         tuple val(sample), path(inVcf)
 
     output:
         path("${sample}.norm.vcf")
 
     """
-    bcftools norm -f $refFasta $inVcf > ${sample}.norm.vcf
+    bcftools head $inVcf | awk '{
+        if (/^##contig/) {
+            if (/$refPath/) {
+                sub(/ID=${refPath}#0#/, "", \$0)
+                print
+            }
+        } else print}' > new_header.txt
+    bcftools reheader -h new_header.txt $inVcf > reheadered.vcf
+    bcftools norm -f $refFasta reheadered.vcf > ${sample}.norm.vcf
     """
 }
 
@@ -182,6 +191,6 @@ workflow {
 
     PACK(gbzIndex, MERGE_GAFS.out)
     CALL(gbzIndex, GET_REF_PATHS.out, SNARLS.out, PACK.out)
-    NORM(refFasta, CALL.out)
+    NORM(refFasta, refPath, CALL.out)
     MERGE_VCFS(NORM.out.collect())
 }
