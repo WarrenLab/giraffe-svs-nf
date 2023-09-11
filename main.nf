@@ -5,6 +5,20 @@ params.gbzIndex = ""
 params.minIndex = ""
 params.distIndex = ""
 params.refFasta = ""
+params.refPath = ""
+
+process GET_REF_PATHS {
+    input:
+        path("index.gbz")
+        val(refPath)
+
+    output:
+        path("ref_paths.txt")
+
+    """
+    vg paths -x index.gbz -S $refPath -L > ref_paths.txt
+    """
+}
 
 process SNARLS {
     input:
@@ -80,6 +94,7 @@ process PACK {
 process CALL {
     input:
         path(gbzIndex)
+        path(refPaths)
         path(snarls)
         tuple val(sample), path("${sample}.pack")
 
@@ -87,6 +102,10 @@ process CALL {
         tuple val(sample), path("${sample}.vcf")
 
     """
+    while read path; do
+        ref_paths_args+="-p \$path"
+    done < $refPaths
+
     vg call \
         $gbzIndex \
         -a \
@@ -94,6 +113,7 @@ process CALL {
         -r $snarls \
         -s ${sample} \
         -t ${task.cpus} \
+        \$ref_paths_args \
         > ${sample}.vcf
     """
 }
@@ -128,6 +148,9 @@ workflow {
     minIndex = file(params.minIndex)
     distIndex = file(params.distIndex)
     refFasta = file(params.refFasta)
+    refPath = file(params.refPath)
+
+    GET_REF_PATHS(gbzIndex, refPath)
 
     Channel.fromPath(params.sampleSheet)
         .splitCsv(header: true)
@@ -158,7 +181,7 @@ workflow {
         .groupTuple() | MERGE_GAFS
 
     PACK(gbzIndex, MERGE_GAFS.out)
-    CALL(gbzIndex, SNARLS.out, PACK.out)
+    CALL(gbzIndex, GET_REF_PATHS.out, SNARLS.out, PACK.out)
     NORM(refFasta, CALL.out)
     MERGE_VCFS(NORM.out.collect())
 }
