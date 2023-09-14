@@ -126,18 +126,20 @@ process NORM {
         tuple val(sample), path(inVcf)
 
     output:
-        path("${sample}.norm.vcf")
+        path("${sample}.norm.vcf.gz")
 
     """
     bcftools head $inVcf | awk '{
         if (/^##contig/) {
             if (/$refPath/) {
-                sub(/ID=${refPath}#0#/, "", \$0)
+                sub(/ID=${refPath}#0#/, "ID=", \$0)
                 print
             }
         } else print}' > new_header.txt
     bcftools reheader -h new_header.txt $inVcf > reheadered.vcf
-    bcftools norm -f $refFasta reheadered.vcf > ${sample}.norm.vcf
+    bcftools norm -f $refFasta reheadered.vcf \
+        | bcftools sort -T . -m ${task.memory * 0.6} \
+        | bgzip > ${sample}.norm.vcf.gz
     """
 }
 
