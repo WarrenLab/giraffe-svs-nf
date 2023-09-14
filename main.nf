@@ -163,9 +163,8 @@ workflow {
     minIndex = file(params.minIndex)
     distIndex = file(params.distIndex)
     refFasta = file(params.refFasta)
-    refPath = file(params.refPath)
 
-    GET_REF_PATHS(gbzIndex, refPath)
+    GET_REF_PATHS(gbzIndex, params.refPath)
 
     Channel.fromPath(params.sampleSheet)
         .splitCsv(header: true)
@@ -197,6 +196,6 @@ workflow {
 
     PACK(gbzIndex, MERGE_GAFS.out)
     CALL(gbzIndex, GET_REF_PATHS.out, SNARLS.out, PACK.out)
-    NORM(refFasta, refPath, CALL.out)
+    NORM(refFasta, params.refPath, CALL.out)
     MERGE_VCFS(NORM.out.collect())
 }
