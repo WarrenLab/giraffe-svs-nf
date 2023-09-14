@@ -151,7 +151,10 @@ process MERGE_VCFS {
         path("merged.vcf.gz")
 
     """
-    bcftools merge -Oz $allVcfs > merged.vcf.gz
+    for vcf in $allVcfs; do
+        bcftools index \$vcf
+    done
+    bcftools merge $allVcfs | bgzip > merged.vcf.gz
     """
 }
 
