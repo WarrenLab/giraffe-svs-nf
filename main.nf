@@ -102,8 +102,9 @@ process CALL {
         tuple val(sample), path("${sample}.vcf")
 
     """
+    ref_path_args=""
     while read path; do
-        ref_paths_args+="-p \$path"
+        ref_paths_args+="-p \$path "
     done < $refPaths
 
     vg call \
