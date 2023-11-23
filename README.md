@@ -31,9 +31,9 @@ and then run the pipeline with the argument `-profile lewis`.
 
 ### With conda
 
-Not yet implemented to install automatically, but you can install the
-requirements yourself using conda and then run the pipeline from within that
-environment.
+If you have conda installed and in your bin, nextflow can create an
+environment to run all tasks in if you run the pipeline with the argument
+`-profile conda`.
 
 ### Requirements
 
@@ -41,8 +41,9 @@ If using one of the methods above, you don't need to worry about installing the
 requirements yourself, but here they are in case you do:
 * [VG toolkit][vg]
 * [bcftools][bcf]
+* [htslib][hts]
 
-## Preparing data {#preparing-data}
+## Preparing data
 
 You'll need to make a sample sheet in csv format with columns named
 `sample_id`, `r1`, and `r2`. The sample ID should be a unique identifier for
@@ -85,3 +86,5 @@ run it.
 [vg]: https://github.com/vgteam/vg
 
 [bcf]: https://github.com/samtools/bcftools
+
+[hts]: https://github.com/samtools/htslib
