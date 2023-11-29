@@ -136,8 +136,9 @@ process NORM {
                 print
             }
         } else print}' > new_header.txt
-    bcftools reheader -h new_header.txt $inVcf > reheadered.vcf
-    bcftools norm -f $refFasta reheadered.vcf \
+    bcftools reheader -h new_header.txt $inVcf \
+        | bcftools view -f.,PASS - \
+        | bcftools norm -f $refFasta - \
         | bcftools sort -T . -m ${task.memory.giga * 0.6}G - \
         | bgzip > ${sample}.norm.vcf.gz
     """
